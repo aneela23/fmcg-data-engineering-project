@@ -57,47 +57,66 @@ The goal is to build a scalable data pipeline that:
 
 ---
 
+---
+
 ## 🏛️ Architecture
 
-The project follows a Medallion Architecture for the child-company pipeline.
+The project follows a Medallion Architecture for the child-company data pipeline.
 
+The parent company is represented by an existing analytical data model, while the acquired child company goes through the complete Bronze → Silver → Gold pipeline before being consolidated with the parent-company data.
+
+```text
                     PARENT COMPANY
-                       PostgreSQL
-                           |
-                           v
-                    Parent Gold Data
-                           |
-                           v
-                    +-------------+
-                    |             |
-                    | Consolidated|
-                    |    Gold     |
-                    |             |
-                    +-------------+
-                           ^
-                           |
+                    PostgreSQL
+                         |
+                         v
+                  Parent Data Model
+                    /    |     \
+                   /     |      \
+                  v      v       v
+             Customers Products Gross Price
+                   \      |      /
+                    \     |     /
+                     v    v    v
+                   Fact Orders
+                         |
+                         |
+                         |
+                         v
+                  Parent Gold Data
+                         |
+                         |
+                         v
+              +----------------------+
+              |   CONSOLIDATED GOLD  |
+              |  Parent + Child Data |
+              +----------------------+
+                         ^
+                         |
+                         |
                     CHILD COMPANY
-                           |
-                           v
-                          S3
-                           |
-                           v
-                       BRONZE
-                           |
-                           v
-                        SILVER
-                   Data Cleaning
-                   & Standardization
-                           |
-                           v
-                         GOLD
-                           |
-                           v
-                    Child Gold Data
-                           |
-                           v
-                  Parent + Child
-                    Consolidation
+                    Sports Bar
+                         |
+                         v
+                        S3
+                         |
+                         v
+                     BRONZE
+                   Raw Data
+                         |
+                         v
+                     SILVER
+             Cleaning & Standardization
+                         |
+                         v
+                      GOLD
+              Business-Ready Data
+                         |
+                         v
+                Child Gold Data
+                         |
+                         v
+              Parent + Child Merge
 
 <img width="1024" height="1536" alt="image" src="https://github.com/user-attachments/assets/1d4ff860-04ad-44b8-a280-8ae49352a6dc" />
 
