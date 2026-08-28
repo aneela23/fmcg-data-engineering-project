@@ -67,8 +67,6 @@ The project follows a Medallion Architecture for the child-company pipeline.
                            v
                     Parent Gold Data
                            |
-                           |
-                           |
                            v
                     +-------------+
                     |             |
@@ -77,7 +75,6 @@ The project follows a Medallion Architecture for the child-company pipeline.
                     |             |
                     +-------------+
                            ^
-                           |
                            |
                     CHILD COMPANY
                            |
