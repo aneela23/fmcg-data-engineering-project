@@ -118,5 +118,7 @@ The parent company is represented by an existing analytical data model, while th
                          v
               Parent + Child Merge
 
-<img width="1024" height="1536" alt="image" src="https://github.com/user-attachments/assets/1d4ff860-04ad-44b8-a280-8ae49352a6dc" />
+
+<img width="1024" height="1536" alt="image" src="https://github.com/user-attachments/assets/f0616729-904d-4a8d-9620-ac64fa171b5c" />
+
 
