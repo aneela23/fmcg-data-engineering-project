@@ -116,6 +116,7 @@ The parent company is represented by an existing analytical data model, while th
                          v
               Parent + Child Merge
 
+
 ---
 
 ## 📊 Parent Company Data Model
