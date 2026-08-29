@@ -78,11 +78,8 @@ The parent company is represented by an existing analytical data model, while th
                      v    v    v
                    Fact Orders
                          |
-                         |
-                         |
                          v
                   Parent Gold Data
-                         |
                          |
                          v
               +----------------------+
@@ -91,7 +88,6 @@ The parent company is represented by an existing analytical data model, while th
               +----------------------+
                          ^
                          |
-                         |
                     CHILD COMPANY
                     Sports Bar
                          |
@@ -99,28 +95,26 @@ The parent company is represented by an existing analytical data model, while th
                         S3
                          |
                          v
-                     BRONZE
-                   Raw Data
+                      BRONZE
+                    Raw Data
                          |
                          v
-                     SILVER
+                      SILVER
              Cleaning & Standardization
                          |
                          v
-                      GOLD
-              Business-Ready Data
+                       GOLD
+                Business-Ready Data
                          |
                          v
                 Child Gold Data
                          |
                          v
               Parent + Child Merge
-
+```
 
 ---
----
 
-## 🏛️ Architecture
 ## 📊 Parent Company Data Model
 
 The parent company data represents the existing analytical data model used as the target structure for integrating the acquired child company's data.
@@ -136,4 +130,4 @@ parent_company
 ├── dim_products
 ├── dim_gross_price
 └── fact_orders
-
+```
