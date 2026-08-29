@@ -57,8 +57,6 @@ The goal is to build a scalable data pipeline that:
 
 ---
 
----
-
 ## 🏛️ Architecture
 
 The project follows a Medallion Architecture for the child-company data pipeline.
@@ -118,4 +116,21 @@ The parent company is represented by an existing analytical data model, while th
                          v
               Parent + Child Merge
 
+---
+
+## 📊 Parent Company Data Model
+
+The parent company data represents the existing analytical data model used as the target structure for integrating the acquired child company's data.
+
+### PostgreSQL Source Model
+
+The parent-company data was initially loaded into PostgreSQL using DBeaver.
+
+```text
+parent_company
+│
+├── dim_customers
+├── dim_products
+├── dim_gross_price
+└── fact_orders
 
