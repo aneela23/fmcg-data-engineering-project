@@ -118,7 +118,9 @@ The parent company is represented by an existing analytical data model, while th
 
 
 ---
+---
 
+## 🏛️ Architecture
 ## 📊 Parent Company Data Model
 
 The parent company data represents the existing analytical data model used as the target structure for integrating the acquired child company's data.
