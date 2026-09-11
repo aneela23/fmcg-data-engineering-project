@@ -131,3 +131,72 @@ parent_company
 ├── dim_gross_price
 └── fact_orders
 ```
+
+
+
+### Source Data Validation
+
+The parent-company source tables were validated in PostgreSQL before being used in the Databricks environment.
+
+| Table | Records | Primary Key |
+|---|---:|---|
+| `dim_customers` | 18 | `customer_code` |
+| `dim_products` | 397 | `product_code` |
+| `dim_gross_price` | 794 | `product_code`, `year` |
+| `fact_orders` | 93,055 | `date`, `product_code`, `customer_code` |
+
+Foreign-key relationships were validated between `fact_orders` and the customer and product dimensions.
+
+### Databricks Gold Model
+
+The existing parent-company analytical data was loaded into the Databricks Gold layer to represent the established enterprise data platform.
+
+```text
+fmcg.gold
+│
+├── dim_customers
+├── dim_products
+├── dim_gross_price
+├── dim_date
+└── fact_orders
+```
+
+The `dim_date` dimension is maintained in the Databricks analytical layer to support time-based reporting and analysis.
+
+---
+
+## 🔄 Child Company Data Pipeline
+
+The acquired child-company (Sports Bar) data is stored in AWS S3 and processed through the Databricks Medallion Architecture.
+
+### Bronze Layer
+
+Raw customer data is ingested from AWS S3 into Delta Lake without business transformations.
+
+Implemented:
+
+- Connected Databricks to the Sports Bar data stored in AWS S3
+- Loaded raw customer data into `fmcg.bronze.customers`
+- Preserved the source data for traceability
+- Enabled Delta Change Data Feed (CDF)
+
+### Silver Layer
+
+The Bronze customer data is cleaned and standardized using PySpark before integration with the parent-company data model.
+
+Implemented:
+
+- Removed duplicate customer records
+- Trimmed whitespace from customer names
+- Standardized customer-name capitalization
+- Cleaned and standardized city values
+- Handled missing city information using business mappings
+- Converted customer identifiers to the required data type
+- Added `market`, `platform`, and `channel` attributes
+- Created a standardized customer field for integration
+
+The processed customer data is stored in:
+
+`fmcg.silver.customers`
+
+The next stage transforms the standardized Silver data into the Gold model and consolidates it with the parent-company customer dimension.
