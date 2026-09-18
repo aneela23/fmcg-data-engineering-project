@@ -314,20 +314,27 @@ Detailed implementation documentation is maintained separately to keep this READ
 
 ---
 
-## 🔜 Next Implementation
+## Databricks Workflow Orchestration
 
-The next phase is pipeline orchestration using Databricks Workflows.
+The child-company data pipeline is orchestrated using Databricks Workflows to execute dimension and fact processing in dependency order.
 
-The workflow will coordinate:
+The workflow executes:
 
-```text
-Customer Processing
-        ↓
-Product Processing
-        ↓
-Gross Price Processing
-        ↓
-Incremental Fact Orders
-```
+**Customers → Products → Gross Price → Incremental Fact Orders**
 
-After orchestration, the project will move to the consolidated analytics layer and downstream BI reporting.
+Each task runs only after its upstream dependency completes successfully. The Fact Orders task processes only newly arrived order files from the S3 landing area, applies Bronze and Silver transformations, updates the child-company Gold layer, and refreshes the affected monthly data in the consolidated Gold fact table.
+
+This provides an automated and dependency-driven pipeline for processing new child-company data.
+
+![Databricks Workflow](screenshots/databricks-workflow-success.png)
+
+---
+## Parent Company Incremental Load
+
+Incremental parent-company order data is loaded into the consolidated Gold fact table using Databricks `COPY INTO`.
+
+New order files are uploaded to a Unity Catalog Volume and incrementally ingested into `fmcg.gold.fact_orders`, with explicit data type casting applied during ingestion.
+
+The incremental load successfully processed **4,485 new records with zero corrupt files**, increasing the consolidated fact table to **101,212 records**.
+
+This enables both parent-company and acquired child-company order data to be maintained within the same consolidated Gold model.
