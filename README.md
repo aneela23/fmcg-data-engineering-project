@@ -195,6 +195,29 @@ Implemented:
 - Added `market`, `platform`, and `channel` attributes
 - Created a standardized customer field for integration
 
+
+### Dimension Data Processing
+
+Child-company dimension data was processed through the Databricks Medallion Architecture and integrated with the existing parent-company Gold model.
+
+Implemented:
+
+- Ingested customer and product source files from AWS S3 into Bronze Delta tables
+- Cleaned, standardized, and deduplicated dimension data in the Silver layer
+- Aligned child-company schemas with the existing parent-company dimensional model
+- Standardized customer, product, category, variant, division, and pricing attributes
+- Created Gold-layer dimension datasets
+- Used Delta Lake merge operations to consolidate child-company records with the existing parent-company dimensions
+
+Consolidated Gold dimensions include:
+
+`fmcg.gold.dim_customers`
+
+`fmcg.gold.dim_products`
+
+`fmcg.gold.dim_gross_price`
+
+The next stage processes the child-company order data and builds the consolidated fact pipeline.
 The processed customer data is stored in:
 
 `fmcg.silver.customers`
