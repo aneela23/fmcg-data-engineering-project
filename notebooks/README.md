@@ -19,6 +19,9 @@ The implementation is located in the [`consolidated_pipeline/`](consolidated_pip
 - `1_full_load_fact.py` – Performs the historical/full load of order data.
 - `2_incremental_load_fact.py` – Processes newly arriving order files and incrementally updates the consolidated Gold fact table.
 
+### 4. Analytics
+- `create_enriched_sales_view.sql` – Creates the enriched Gold-layer sales view used by the **Retail Sales 360 Dashboard**.
+
 ### Utilities
 - `utilities.py` – Contains shared schema configuration used across the Databricks notebooks.
 
