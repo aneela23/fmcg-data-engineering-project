@@ -1,131 +1,80 @@
-# FMCG Data Engineering Platform
+# Retail Acquisition Data Integration Platform
 
-An end-to-end data engineering project that integrates FMCG sales data from a parent company and an acquired child company using AWS S3, Databricks, PySpark, Delta Lake, PostgreSQL, and SQL.
+An end-to-end data engineering project that integrates sales data from a parent retail company and an acquired company using **AWS S3, Databricks, PySpark, Delta Lake, PostgreSQL, and SQL**.
 
-The project demonstrates data ingestion, Medallion Architecture, data quality, dimensional modeling, historical and incremental processing, and parent-child data consolidation.
+The project demonstrates a real-world post-acquisition data integration scenario covering **data ingestion, Medallion Architecture, data quality, dimensional modeling, historical and incremental processing, workflow orchestration, and analytics**.
 
 ---
 
 ## 📌 Project Overview
 
-This project simulates an FMCG (Fast-Moving Consumer Goods) business scenario where a parent company acquires a child company.
+This project simulates a business acquisition where an established parent company needs to integrate data from a newly acquired company operating with a separate data platform.
 
-The parent company already has an established analytical data model, while the acquired child company (Sports Bar) provides data through separate source files with different schemas and data-quality issues.
+The parent company already has an analytical data model, while the acquired company provides customer, product, pricing, and order data through separate source files with different schemas and data-quality issues.
 
-The pipeline standardizes the child-company data and integrates it with the existing parent-company model to create a unified analytical platform.
-
----
-
-## 🎯 Project Objectives
-
-- Build an end-to-end data engineering pipeline
-- Implement Bronze, Silver, and Gold layers
-- Ingest source data from AWS S3
-- Perform data cleansing and transformation using PySpark
-- Implement data-quality rules
-- Build fact and dimension models
-- Process historical and incremental data
-- Use Delta Lake MERGE operations
-- Consolidate parent and child-company data
-- Produce analytics-ready Gold datasets
-- Practice production-oriented Databricks data engineering concepts
+The pipeline standardizes the acquired-company data and integrates it with the existing parent-company model to create a **unified analytics-ready Gold layer**.
 
 ---
 
-## 🏗️ Technology Stack
+## 🛠️ Technology Stack
 
 | Technology | Purpose |
 |---|---|
-| PostgreSQL | Parent-company relational source |
-| DBeaver | Database development and validation |
-| AWS S3 | Child-company source data and landing zone |
-| Databricks | Lakehouse data engineering platform |
-| PySpark | Data processing and transformations |
+| PostgreSQL / DBeaver | Parent-company source and data validation |
+| AWS S3 | Acquired-company source and landing/processed zones |
+| Databricks | Lakehouse data engineering and analytics |
+| PySpark | Data cleansing and transformations |
 | SQL | Data validation, modeling, and analytics |
 | Delta Lake | Transactional storage and MERGE operations |
+| Unity Catalog | Lakehouse data organization |
 | Databricks Workflows | Pipeline orchestration |
+| Databricks AI/BI | Analytics and visualization |
 | GitHub | Version control and documentation |
-| Power BI | Analytics and visualization |
 
 ---
 
-## 🏛️ Architecture
+## 🏗️ Architecture
 
-The parent company represents an existing analytical platform.
+The parent-company data represents an existing analytical platform.
 
-The acquired child-company data is ingested from AWS S3 and processed through a Databricks Medallion Architecture before being standardized and consolidated with the parent-company Gold model.
+Data from the acquired company is ingested from **AWS S3** and processed through a **Bronze → Silver → Gold Medallion Architecture** before being standardized and integrated with the parent-company Gold model.
 
 ```text
-                 PARENT COMPANY
-                    PostgreSQL
-                        |
-                        v
-                 Existing Model
-                        |
-                        v
-                 Databricks Gold
-                        |
-                        |
-                        v
-              +--------------------+
-              | CONSOLIDATED GOLD  |
-              |  Parent + Child    |
-              +--------------------+
-                        ^
-                        |
-                   CHILD COMPANY
-                    Sports Bar
-                        |
-                        v
-                     AWS S3
-                        |
-                        v
-                     BRONZE
-                    Raw Data
-                        |
-                        v
-                     SILVER
-              Clean & Standardize
-                        |
-                        v
-                      GOLD
-                Business-Ready
-                        |
-                        v
-              Parent + Child Merge
+              PARENT COMPANY
+                 PostgreSQL
+                     │
+                     ▼
+              Databricks Gold
+                     │
+                     ▼
+             CONSOLIDATED GOLD
+                     ▲
+                     │
+              ACQUIRED COMPANY
+                     │
+                     ▼
+                  AWS S3
+                     │
+                     ▼
+                  BRONZE
+                 Raw Data
+                     │
+                     ▼
+                  SILVER
+             Clean & Standardize
+                     │
+                     ▼
+                   GOLD
+              Business-Ready
+                     │
+                     └──────► Consolidated Gold
 ```
 
 ---
 
-## 📊 Parent Company Data Model
+## 📊 Data Model
 
-The parent-company dataset represents the existing analytical model and provides the target structure for integrating the acquired child-company data.
-
-### PostgreSQL Source
-
-```text
-parent_company
-│
-├── dim_customers
-├── dim_products
-├── dim_gross_price
-└── fact_orders
-```
-
-### Source Validation
-
-| Table | Records | Primary Key |
-|---|---:|---|
-| `dim_customers` | 18 | `customer_code` |
-| `dim_products` | 397 | `product_code` |
-| `dim_gross_price` | 794 | `product_code`, `year` |
-| `fact_orders` | 93,055 | `date`, `product_code`, `customer_code` |
-
-Primary-key uniqueness, null constraints, and relationships between the fact and dimension tables were validated before integration.
-
-### Databricks Gold Model
-
-The existing analytical model is represented in Databricks as:
+The consolidated Gold layer follows a dimensional model containing:
 
 ```text
 fmcg.gold
@@ -137,138 +86,99 @@ fmcg.gold
 └── fact_orders
 ```
 
-The `dim_date` dimension supports time-based reporting and analytics.
+The parent-company source data was validated in PostgreSQL for **primary-key uniqueness, null constraints, and fact-to-dimension relationships** before integration.
+
+![Parent Company Data Model](architecture/parent-company-schema.png)
 
 ---
 
-## 🔄 Child Company Data Pipeline
+## 🥉🥈🥇 Medallion Data Pipeline
 
-Sports Bar source data is stored in AWS S3 and processed through the Databricks Medallion Architecture.
+### Bronze
+Raw customer, product, pricing, and order data is ingested from AWS S3 into Delta tables while preserving source-level data for traceability and reprocessing.
 
-### 🥉 Bronze
+### Silver
+PySpark transformations perform:
 
-Raw customer, product, pricing, and order data is ingested from AWS S3 into Delta tables.
-
-The Bronze layer preserves source-level data and ingestion metadata for traceability and reprocessing.
-
-### 🥈 Silver
-
-PySpark transformations clean and standardize the source data.
-
-Processing includes:
-
-- Deduplication
-- Missing-value handling
-- Data-type standardization
-- Customer and location standardization
+- Deduplication and missing-value handling
+- Data-type and schema standardization
+- Customer and location cleansing
 - Product, category, variant, and division standardization
-- Pricing transformations
-- Fact-data transformation
-- Schema alignment with the parent-company model
+- Pricing and order transformations
+- Alignment with the parent-company data model
 
-### 🥇 Gold
-
-Business-ready child-company datasets are created and integrated with the parent-company model using Delta Lake `MERGE` operations.
-
-Consolidated Gold tables include:
-
-```text
-fmcg.gold.dim_customers
-fmcg.gold.dim_products
-fmcg.gold.dim_gross_price
-fmcg.gold.dim_date
-fmcg.gold.fact_orders
-```
+### Gold
+Business-ready dimensions and facts are created and integrated with the existing parent-company model using **Delta Lake MERGE operations**.
 
 ---
 
-## 📦 Fact Orders Processing
+## ⚡ Historical & Incremental Processing
 
-The fact pipeline supports both **historical backfill** and **incremental processing**.
+The order pipeline supports both an initial historical load and incremental processing of newly arriving order files.
 
-### Historical Load
-
-Historical order files are processed through:
+For incremental processing, a staging layer isolates the current batch so only new data is transformed. Successfully processed files are moved from the S3 `landing` location to `processed`, preventing duplicate file processing.
 
 ```text
-S3 Landing
-    ↓
-Bronze
-    ↓
-Silver
-    ↓
-Child Gold
-    ↓
+New Order File
+      │
+      ▼
+  S3 Landing
+      │
+      ├──────► Bronze (Raw History)
+      │
+      ▼
+   Staging
+      │
+      ▼
+    Silver
+      │
+      ▼
+ Child Gold
+      │
+      ▼
 Consolidated Gold
 ```
-
-After successful ingestion, processed source files are moved from the S3 `landing` directory to the `processed` directory.
-
-The child-company fact data is transformed to match the parent-company fact structure before consolidation.
-
----
-
-## ⚡ Incremental Processing
-
-After the historical backfill, newly arriving daily order files are processed incrementally rather than reprocessing the complete historical dataset.
-
-A staging layer isolates the current batch so transformations operate only on newly arrived records.
-
-```text
-New Daily File
-      ↓
-S3 Landing
-      ↓
- ┌───────────────┐
- │ Current Batch │
- └───────┬───────┘
-         │
-    ┌────┴─────┐
-    ↓          ↓
- Bronze     Staging
-    │          │
-    │          ↓
-    │       Silver
-    │          ↓
-    │      Child Gold
-    │          ↓
-    └──→ Consolidated Gold
-
-S3 Landing → Process → S3 Processed
-```
-
-The incremental design provides:
-
-- Processing of newly arrived records only
-- Preservation of complete raw history in Bronze
-- Batch isolation through staging tables
-- Incremental Silver and Gold updates
-- Delta Lake merge/upsert processing
-- Protection against reprocessing previously consumed source files
-
-### Incremental Architecture
 
 ![Incremental Fact Orders Pipeline](architecture/incremental-fact-orders-pipeline.png)
 
 ---
 
-## 🏆 Consolidated Gold Model
+## ⚙️ Databricks Workflow Orchestration
 
-The final Gold layer provides a unified analytical model containing standardized data from both the parent and acquired child company.
+The acquired-company pipeline is orchestrated using **Databricks Workflows** with dependency-based execution:
 
-```text
-                    fact_orders
-                         |
-          +--------------+--------------+
-          |              |              |
-          v              v              v
-   dim_customers    dim_products   dim_gross_price
-                         |
-                         v
-                     dim_date
-```
+**Customers → Products → Gross Price → Incremental Fact Orders**
 
-This model supports analysis across customers, products, pricing, dates, platforms, and sales transactions.
+The workflow automates dimension processing followed by incremental fact processing and updates the consolidated Gold model when new order data arrives.
+
+![Databricks Workflow](screenshots/databricks-workflow-success.png)
+
+---
+
+## 📥 Parent Company Incremental Load
+
+New parent-company order data is incrementally loaded into the consolidated Gold fact table using Databricks `COPY INTO`.
+
+The incremental load processed **4,485 new records with zero corrupt files**, bringing the consolidated `fact_orders` table to **101,212 records**.
+
+This demonstrates a second incremental ingestion pattern alongside the Delta Lake MERGE-based acquired-company pipeline.
+
+---
+
+## 📈 Analytics Layer
+
+An analytics-ready Gold view, `fmcg.gold.vw_fact_orders_enriched`, combines order data with customer, product, pricing, and date dimensions.
+
+A **Retail Sales 360 Dashboard** was built using Databricks AI/BI to provide visibility into:
+
+- Total revenue and quantity sold
+- Customer performance
+- Product and variant performance
+- Revenue by sales channel
+- Monthly revenue trends
+- Product price vs. sales volume
+
+![Retail Sales 360 Dashboard](screenshots/atliqon-bi-360-dashboard.png)
 
 ---
 
@@ -289,10 +199,15 @@ fmcg-data-engineering-project/
 │   └── incremental-processing.md
 │
 ├── notebooks/
-│   ├── dimensions/
-│   └── facts/
+│   ├── README.md
+│   ├── utilities.py
+│   ├── 1_setup/
+│   ├── 2_dimension_data_processing/
+│   └── 3_fact_data_processing/
 │
 ├── screenshots/
+│   ├── atliqon-bi-360-dashboard.png
+│   ├── databricks-workflow-success.png
 │   └── postgresql/
 │
 ├── sql/
@@ -303,38 +218,6 @@ fmcg-data-engineering-project/
 
 ---
 
-## 📚 Technical Documentation
+## 🔑 Key Engineering Concepts
 
-Detailed implementation documentation is maintained separately to keep this README concise.
-
-- **Data Pipeline:** `docs/data-pipeline.md`
-- **Incremental Processing:** `docs/incremental-processing.md`
-- **Data Quality Rules:** `data-quality/data-quality-rules.md`
-- **Parent Data Validation:** `sql/parent-data-validation.sql`
-
----
-
-## Databricks Workflow Orchestration
-
-The child-company data pipeline is orchestrated using Databricks Workflows to execute dimension and fact processing in dependency order.
-
-The workflow executes:
-
-**Customers → Products → Gross Price → Incremental Fact Orders**
-
-Each task runs only after its upstream dependency completes successfully. The Fact Orders task processes only newly arrived order files from the S3 landing area, applies Bronze and Silver transformations, updates the child-company Gold layer, and refreshes the affected monthly data in the consolidated Gold fact table.
-
-This provides an automated and dependency-driven pipeline for processing new child-company data.
-
-![Databricks Workflow](screenshots/databricks-workflow-success.png)
-
----
-## Parent Company Incremental Load
-
-Incremental parent-company order data is loaded into the consolidated Gold fact table using Databricks `COPY INTO`.
-
-New order files are uploaded to a Unity Catalog Volume and incrementally ingested into `fmcg.gold.fact_orders`, with explicit data type casting applied during ingestion.
-
-The incremental load successfully processed **4,485 new records with zero corrupt files**, increasing the consolidated fact table to **101,212 records**.
-
-This enables both parent-company and acquired child-company order data to be maintained within the same consolidated Gold model.
+**AWS S3 • Databricks • PySpark • SQL • Delta Lake • Unity Catalog • Medallion Architecture • ETL/ELT • Dimensional Modeling • Data Quality • Incremental Processing • Delta MERGE • COPY INTO • Databricks Workflows • Analytics**
