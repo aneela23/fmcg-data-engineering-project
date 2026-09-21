@@ -35,37 +35,32 @@ The pipeline standardizes the acquired-company data and integrates it with the e
 
 ## 🏗️ Architecture
 
-The parent-company data represents an existing analytical platform. Data from the acquired company is ingested from **AWS S3** and processed through a **Bronze → Silver → Gold Medallion Architecture** before being integrated with the parent-company Gold model.
+The parent-company data represents an existing analytical platform, while acquired-company data is ingested from **AWS S3** and processed through a **Bronze → Silver → Gold Medallion Architecture**.
+
+Both data sources are standardized and integrated into a consolidated Gold layer for downstream analytics.
 
 ```text
-Parent Company
-   PostgreSQL
-       │
-       ▼
-Databricks Gold
-       │
-       ▼
-Consolidated Gold
-       ▲
-       │
-Acquired Company
-       │
-       ▼
-     AWS S3
-       │
-       ▼
-     Bronze
-       │
-       ▼
-     Silver
-       │
-       ▼
-      Gold
-       │
-       └────────► Consolidated Gold
+Parent Company                         Acquired Company
+   PostgreSQL                               AWS S3
+       │                                       │
+       ▼                                       ▼
+Databricks Gold                            Bronze
+       │                                       │
+       │                                       ▼
+       │                                    Silver
+       │                                       │
+       │                                       ▼
+       │                                     Gold
+       │                                       │
+       └───────────────┬───────────────────────┘
+                       ▼
+                Consolidated Gold
+                       │
+                       ▼
+                    Analytics
 ```
 
-📂 [View Architecture Diagrams](architecture/)
+📂 [View Architecture Documentation & Diagrams](architecture/)
 
 ---
 
@@ -85,20 +80,29 @@ fmcg.gold
 
 The parent-company source data was validated in PostgreSQL for **primary-key uniqueness, null constraints, and fact-to-dimension relationships** before integration.
 
-📂 [View Data Model & Architecture](architecture/)  
-📄 [View Parent Data Validation SQL](sql/parent-data-validation.sql)
+📊 [View Parent Company Data Model](architecture/images/parent-company-data-model.png)
 
 ---
 
 ## 🥉🥈🥇 Medallion Data Pipeline
 
 ### Bronze
+
 Raw customer, product, pricing, and order data is ingested from AWS S3 into Delta tables while preserving source-level data for traceability and reprocessing.
 
 ### Silver
-PySpark transformations handle **deduplication, missing values, data types, customer and location cleansing, product standardization, pricing transformations, and schema alignment**.
+
+PySpark transformations handle:
+
+- Deduplication and missing values
+- Data-type and schema standardization
+- Customer and location cleansing
+- Product, category, variant, and division standardization
+- Pricing and order transformations
+- Alignment with the parent-company data model
 
 ### Gold
+
 Business-ready dimensions and facts are created and integrated with the parent-company model using **Delta Lake MERGE operations**.
 
 📂 [View Databricks Pipeline Notebooks](notebooks/)  
@@ -110,7 +114,7 @@ Business-ready dimensions and facts are created and integrated with the parent-c
 
 The order pipeline supports both an initial **historical load** and incremental processing of newly arriving order files.
 
-For incremental processing, a staging layer isolates the current batch so only new data is transformed. Successfully processed files are moved from the S3 `landing` location to `processed`, preventing duplicate file processing.
+For incremental processing, a staging layer isolates the current batch so only newly arrived data is transformed. Bronze maintains the complete raw history, while successfully processed source files are moved from the S3 `landing` location to `processed` to prevent duplicate processing.
 
 ```text
 New Order File
@@ -133,10 +137,10 @@ New Order File
 Consolidated Gold
 ```
 
-The incremental pipeline uses **Delta Lake MERGE** operations to update Gold datasets without reprocessing the complete historical dataset.
+The incremental pipeline uses **Delta Lake MERGE** operations to update the appropriate Gold datasets without reprocessing the complete historical dataset.
 
-📄 [View Incremental Processing Documentation](docs/incremental-processing.md)  
-📂 [View Fact Processing Notebooks](notebooks/3_fact_data_processing/)
+📊 [View Incremental Processing Architecture](architecture/images/incremental-processing-architecture.png)  
+📂 [View Fact Processing Notebooks](notebooks/consolidated_pipeline/3_fact_data_processing/)
 
 ---
 
@@ -148,13 +152,13 @@ The acquired-company pipeline is orchestrated using **Databricks Workflows** wit
 
 The workflow automates dimension processing followed by incremental fact processing and updates the consolidated Gold model when new order data arrives.
 
-📷 [View Databricks Workflow Execution](screenshots/databricks-workflow-success.png)
+📷 [View Successful Workflow Execution](screenshots/databricks-workflow-success.png)
 
 ---
 
 ## 📥 Parent Company Incremental Load
 
-New parent-company order data is incrementally loaded into the consolidated Gold fact table using Databricks `COPY INTO`.
+New parent-company order data is incrementally loaded into the consolidated Gold fact table using Databricks **`COPY INTO`**.
 
 The incremental load processed **4,485 new records with zero corrupt files**, bringing the consolidated `fact_orders` table to **101,212 records**.
 
@@ -164,10 +168,18 @@ This demonstrates an additional incremental ingestion pattern alongside the Delt
 
 ## 📈 Analytics Layer
 
-An analytics-ready Gold view, `fmcg.gold.vw_fact_orders_enriched`, combines consolidated order data with customer, product, pricing, and date dimensions.
+An analytics-ready Gold view, **`fmcg.gold.vw_fact_orders_enriched`**, combines consolidated order data with customer, product, pricing, and date dimensions.
 
-The **Retail Sales 360 Dashboard** was built using Databricks AI/BI to analyze **revenue, quantity sold, customer performance, product performance, sales channels, monthly trends, and pricing versus sales volume**.
+The view provides the reporting layer for the **Retail Sales 360 Dashboard**, built using Databricks AI/BI to analyze:
 
+- Revenue and quantity sold
+- Customer performance
+- Product and variant performance
+- Revenue by sales channel
+- Monthly revenue trends
+- Product price vs. sales volume
+
+📄 [View Analytics SQL](notebooks/consolidated_pipeline/4_analytics/create_enriched_sales_view.sql)  
 📊 [View Retail Sales 360 Dashboard](screenshots/retail-sales-360-dashboard.png)
 
 ---
@@ -175,18 +187,31 @@ The **Retail Sales 360 Dashboard** was built using Databricks AI/BI to analyze *
 ## 📁 Repository Structure
 
 ```text
-fmcg-data-engineering-project/
+retail-acquisition-data-integration/
 │
-├── architecture/          # Data models and pipeline diagrams
-├── data-quality/          # Data-quality rules
-├── docs/                  # Pipeline documentation
+├── architecture/
+│   ├── architecture.md
+│   └── images/
+│       ├── parent-company-data-model.png
+│       ├── end-to-end-data-architecture.png
+│       └── incremental-processing-architecture.png
+│
+├── data-quality/
+│   └── data-quality-rules.md
+│
 ├── notebooks/
-│   ├── 1_setup/
-│   ├── 2_dimension_data_processing/
-│   ├── 3_fact_data_processing/
-│   └── utilities.py
-├── screenshots/           # Workflow and analytics results
-├── sql/                   # Source validation SQL
+│   ├── README.md
+│   └── consolidated_pipeline/
+│       ├── 1_setup/
+│       ├── 2_dimension_data_processing/
+│       ├── 3_fact_data_processing/
+│       ├── 4_analytics/
+│       └── utilities.py
+│
+├── screenshots/
+│   ├── databricks-workflow-success.png
+│   └── retail-sales-360-dashboard.png
+│
 └── README.md
 ```
 
@@ -194,4 +219,4 @@ fmcg-data-engineering-project/
 
 ## 🔑 Key Engineering Concepts
 
-**AWS S3 • Databricks • PySpark • SQL • Delta Lake • Unity Catalog • Medallion Architecture • ETL/ELT • Dimensional Modeling • Data Quality • Incremental Processing • Delta MERGE • COPY INTO • Databricks Workflows • Analytics**
+**AWS S3 • Databricks • PySpark • SQL • Delta Lake • Unity Catalog • Medallion Architecture • ETL/ELT • Dimensional Modeling • Data Quality • Historical & Incremental Processing • Delta MERGE • COPY INTO • Databricks Workflows • Analytics**
