@@ -21,3 +21,7 @@ The parent-company data originates from PostgreSQL and follows a dimensional mod
 New order files are processed incrementally using an S3 landing/processed pattern, Bronze historical storage, staging tables, Silver transformations, Delta Lake MERGE operations, and Gold consolidation.
 
 [View Incremental Processing Architecture](images/incremental-processing-architecture.png)
+
+## Note
+
+Architecture diagrams were created for project documentation and visualization purposes with the assistance of AI tools. The underlying architecture, pipeline implementation, transformations, and code are represented in the project notebooks and documentation.
