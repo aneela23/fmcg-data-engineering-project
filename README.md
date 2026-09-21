@@ -60,6 +60,7 @@ Databricks Gold                            Bronze
                     Analytics
 ```
 
+📊 [View End-to-End Architecture](architecture/images/end-to-end-data-architecture.png)  
 📂 [View Architecture Documentation & Diagrams](architecture/)
 
 ---
